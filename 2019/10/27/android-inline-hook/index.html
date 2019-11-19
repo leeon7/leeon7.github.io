@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="mask-icon" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="HookHook在Android系统的应用根据框架层次可以分为两类，Java层和Native层，常见的实现方式如下：    框架层次 Hook手段    Java层 动态代理，代码、字节码织入（AspectJ、ASM等）   Native层 GOT&#x2F;PLT Hook，Trap Hook，Inline Hook   其中Native层的三种hook手段在应用范围、实现难度、性能等维度上有以下区别：">
+<meta name="keywords" content="Android,Native,计算机基础">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android Inline Hook详解">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;10&#x2F;27&#x2F;android-inline-hook&#x2F;index.html">
+<meta property="og:site_name" content="Leeon&#39;s Blog">
+<meta property="og:description" content="HookHook在Android系统的应用根据框架层次可以分为两类，Java层和Native层，常见的实现方式如下：    框架层次 Hook手段    Java层 动态代理，代码、字节码织入（AspectJ、ASM等）   Native层 GOT&#x2F;PLT Hook，Trap Hook，Inline Hook   其中Native层的三种hook手段在应用范围、实现难度、性能等维度上有以下区别：">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;lMw6U4zLDosO3iG.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;S95BeirRkmUbaEZ.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;KayHjRqME6NsdYm.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;sO5rtgKLcEyTe16.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;vfME7c6q5lnCW1X.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;wzQOf7U65tqmiIM.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;EcXZsi7by2kvT8e.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;XvPhokRImF9dOSC.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;EPQ231VWIlYoDa5.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;On29L5IbVsKAxSZ.png">
+<meta property="og:updated_time" content="2019-11-19T08:20:58.725Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;lMw6U4zLDosO3iG.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/10/27/android-inline-hook/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Android Inline Hook详解 | Leeon's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-152860563-1"></script>
+    <script>
+      var host = window.location.hostname;
+      if (host !== "localhost" || !true) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-152860563-1');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Leeon's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">不怕立FLAG</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/27/android-inline-hook/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+      <meta itemprop="name" content="leeon">
+      <meta itemprop="description" content="you rest, you rust">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Leeon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Android Inline Hook详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-10-27 16:49:32" itemprop="dateCreated datePublished" datetime="2019-10-27T16:49:32+08:00">2019-10-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-11-19 16:20:58" itemprop="dateModified" datetime="2019-11-19T16:20:58+08:00">2019-11-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="Hook"><a href="#Hook" class="headerlink" title="Hook"></a>Hook</h2><p>Hook在Android系统的应用根据框架层次可以分为两类，Java层和Native层，常见的实现方式如下：</p>
+<table>
+<thead>
+<tr>
+<th>框架层次</th>
+<th>Hook手段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Java层</td>
+<td>动态代理，代码、字节码织入（AspectJ、ASM等）</td>
+</tr>
+<tr>
+<td>Native层</td>
+<td>GOT/PLT Hook，Trap Hook，Inline Hook</td>
+</tr>
+</tbody></table>
+<p>其中Native层的三种hook手段在应用范围、实现难度、性能等维度上有以下区别：</p>
+<table>
+<thead>
+<tr>
+<th>比较维度</th>
+<th>GOT/PLT Hook</th>
+<th>Trap Hook</th>
+<th>Inline Hook</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实现原理</td>
+<td>修改延时绑定表</td>
+<td>SIGTRAP断点信号</td>
+<td>运行时指令替换</td>
+</tr>
+<tr>
+<td>粒度</td>
+<td>方法级</td>
+<td>指令级</td>
+<td>指令级</td>
+</tr>
+<tr>
+<td>作用域</td>
+<td>窄</td>
+<td>广</td>
+<td>广</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>高</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>难度</td>
+<td>中</td>
+<td>中</td>
+<td>极高</td>
+</tr>
+</tbody></table>
+<p>这三种方式在实际环境中应用较多的是GOT/PLT Hook，由于只是在ELF动态链接的默认流程上稍作修改，这种方式侵入性较低，且能保证性能，可以方便的实现对so库的方法hook，唯一的缺点是只能作用于绑定表中存在的方法，作用域有一定限制。trap hook由于使用系统中断，在性能上表现不好。Inline hook是终极hook手段，通过直接修改运行时内存的方式替换指令，完全手工的完成hook及跳回操作，理论上可以实现任意位置的hook，不过手写指令时需要考虑abi兼容等众多因素，实现难度很高，实际应用的场景不多。</p>
+<h2 id="汇编"><a href="#汇编" class="headerlink" title="汇编"></a>汇编</h2><p>在手撕汇编之前，先简单回顾下基础知识</p>
+<p><img src="https://i.loli.net/2019/11/13/lMw6U4zLDosO3iG.png" alt="高级语言-低级语言转换"></p>
+<p>平时用来开发的高级语言必须转换成低级语言才能被CPU执行，根据是否有中间结果的区别，完成转换的可能是编译器或虚拟机。和百花齐放的高级语言不同，低级语言只有两种，汇编和机器码（即二进制码），汇编是机器码的文本化表示，两者是一对一的对应关系。</p>
+<p><img src="https://i.loli.net/2019/11/13/S95BeirRkmUbaEZ.png" alt="逻辑关系"></p>
+<p>逻辑上讲，汇编是为了解决机器码可读性的产物，汇编在执行前需要先翻译成机器码，这个过程叫assembing，所以汇编语言叫ASM。</p>
+<blockquote>
+<p>$ gcc -S yourfile可以将c文件编译成汇编文件.s</p>
+</blockquote>
+<h2 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h2><p><img src="https://i.loli.net/2019/11/13/KayHjRqME6NsdYm.png" alt="寄存器"></p>
+<p>为了填平运算组件（CPU）和存储单元（硬盘）的性能沟壑，会在其间加几个缓冲单元，从慢到快依次是RAM、Cache、寄存器。一般CPU会自带这些缓冲层，其中寄存器直接跟CPU交互，是读取速度最快的单位。随着发展CPU的寄存器数量从几个增长到了几十个（ARM有37个），其中前16个一般会被当作通用寄存器使用（编号0-15），而编号15的寄存器又最为特殊，一般会把r15当作program counter，熟悉JVM的同学知道在虚拟机中也有类似的概念，只是一个是虚拟的，一个是真实的：</p>
+<p><img src="https://i.loli.net/2019/11/13/sO5rtgKLcEyTe16.png" alt="PC"></p>
+<p>一般把r15当作PC寄存器，即program counter，也就是Instruction Pointer，指向程序当前执行到的那条指令。</p>
+<h2 id="Inline-Hook"><a href="#Inline-Hook" class="headerlink" title="Inline Hook"></a>Inline Hook</h2><p>回到主题，指令级别的hook跟高级语言层面的实现方式在感官上有很大区别，高级语言中不管借助什么手段，只需将hook代码织入到目标代码之中即可，但这种方式在指令级别是行不通的，见下图：</p>
+<a id="more"></a>
+
+<p><img src="https://i.loli.net/2019/11/13/vfME7c6q5lnCW1X.png" alt="错误做法"></p>
+<p>我们需要知道，操作系统将程序指令成段装载到内存里，我们手动把若干指令插入到某个位置就是改动了程序装载后的内存结构，这意味着程序需要重新做<code>地址重定位</code>才能正常运行，这本该由链接器完成的工作换成人工来计算几乎是不可能的，所以这肯定不是实现hook的正确方式。为了保持内存结构不变，正确的方法是使用<code>指令替换</code>而不是指令插入的方式来实现hook，见下图：</p>
+<p><img src="https://i.loli.net/2019/11/13/wzQOf7U65tqmiIM.png" alt="指令级hook"></p>
+<p>假设目标方法内有ins0, ins1, ins2三条指令，首先将起始指令（实际上是前2条指令）替换为<code>等长</code>的跳转指令jump_ins，jump_ins负责跳转到hook方法执行，而hook操作后，往往还需要保留调用原方法的能力以保证功能可用性，所以hook方法内还有一个跳转指令来调回原方法继续执行（jump ins1），调回前需要先补充执行目标方法已被替换的原始指令（图中ins0），保证原方法完整性。综上，inline hook需要完成的工作就是图中绿色的部分，即跳转指令的替换、补充执行原指令、跳回原方法继续执行这三步。</p>
+<h3 id="跳转指令"><a href="#跳转指令" class="headerlink" title="跳转指令"></a>跳转指令</h3><p>先简单熟悉下ARM的常用指令集</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>功能</th>
+<th>举例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>跳转</td>
+<td>跳转到目标地址执行</td>
+<td>B, BL, BLX, BX</td>
+</tr>
+<tr>
+<td>数据处理</td>
+<td>数据传送、算术、比较等</td>
+<td>MOV, CMP, ADD, MUL</td>
+</tr>
+<tr>
+<td>加载/存储</td>
+<td>读取/写入寄存器</td>
+<td>LDR, LDRB, LDRH</td>
+</tr>
+<tr>
+<td>访问状态寄存器</td>
+<td>读取/写入程序状态寄存器</td>
+<td>MRS, MSR</td>
+</tr>
+<tr>
+<td>访问协处理器</td>
+<td>操作协处理器</td>
+<td>CDP, LDC</td>
+</tr>
+<tr>
+<td>异常/中断</td>
+<td>产生软件中断</td>
+<td>SWI, BKPT</td>
+</tr>
+<tr>
+<td>伪指令</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody></table>
+<p>以B开头的指令是专门的跳转指令，不过在这里不适用inline hook的场景，因为它们只用来完成32MB以内的相对地址的跳转，而我们无法保证hook方法在这个范围内。如何实现绝对地址的跳转呢？回忆下，还记得PC这个特殊地位的寄存器吗？它存储着程序当前执行的指令地址，换句话说，CPU执行的指令是从PC指向的地址取出来的，那么我们将一个目标地址写入PC就实现了绝对地址的跳转，对应的是写入寄存器的指令：LDR。查询文档，LDR指令格式如下：</p>
+<p><img src="https://i.loli.net/2019/11/13/EcXZsi7by2kvT8e.png" alt="LDR指令格式"></p>
+<p>大括号内的可选参数暂时不管，指令格式可归纳为<code>LDR Rd, &lt;destication address&gt;</code>，其中Rd为目标寄存器，中括号内为得出一个绝对地址的表达式，表达式内部可能用到Rn和Rm两个寄存器作为操作数，也可能是一个立即数。假设想要跳转的地址是0x11111111，那么将该地址写入PC的指令就是<code>LDR PC, 0x11111111</code>，可随即遇到一个问题，ARM下每条指令的长度是32位，而地址长度也是32位，将一个绝对地址写入一个指令里显然是不可能的，像<code>LDR PC, 0x11111111</code>这样的指令是无法写入内存的。那么该如何在一条指令的空间里写入一个绝对地址的表达式呢？</p>
+<h4 id="寄存器间接寻址"><a href="#寄存器间接寻址" class="headerlink" title="寄存器间接寻址"></a>寄存器间接寻址</h4><p>注意到一个寄存器的容量也是32位，刚好能装下一个绝对地址，所以可以把目标地址先存到某个寄存器（Rm）中，然后执行<code>LDR PC, Rm</code>就实现了绝对地址的跳转，这种以某个寄存器作为基准的寻址方式叫做寄存器间接寻址。再进一步，在实际开发中我们发现PC寄存器就是一个天然的铆点，并且<code>想要跳转的目标地址往往离程序当前执行到的地址不远</code>，所以索性用PC加上一个偏移量来表达一个绝对地址，格式为：<code>LDR PC, [PC, offset]</code>，这种寻址方式又叫<code>PC相对寻址</code>。使用PC相对寻址，我们可以用8个字节（即2条指令的长度）来完成一个绝对地址的跳转操作：</p>
+<table>
+<thead>
+<tr>
+<th>虚拟地址</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0x00006000</td>
+<td>LDR PC, [PC, 4]</td>
+</tr>
+<tr>
+<td>0x00006004</td>
+<td>destination address</td>
+</tr>
+</tbody></table>
+<p>0x00006000位置的指令含义为当CPU执行到此时，将该地址加4字节-即0x00006004地址内的内容写入到PC中，而内容就是我们事先写入的目标地址。</p>
+<p>到此跳转指令似乎完成了，可实际上还需要做一个调整，由于ARM下CPU遵循<code>三级流水</code>的执行流程，PC并不指向当前指令，见下图：</p>
+<p><img src="https://i.loli.net/2019/11/13/XvPhokRImF9dOSC.png" alt="三级流水"></p>
+<p>三级流水可以近似理解为三线程并行。三级流水将CPU运行拆解为三个步骤：取指、转译、执行。取指单元在取出一条指令后，会交给下游-转译单元进行翻译，转而继续取下一条指令，无需等待该指令后续的步骤。三个单元有各自的流水线，这样造成的结果就是PC（即取指单元）总是指向正在执行的指令往后两条指令的地址位置，如图当CPU执行ADD指令时，Fetch已取到了CMP指令，领先了ADD两条指令的距离。依据此，需要对上面的跳转指令做如下调整：</p>
+<table>
+<thead>
+<tr>
+<th>虚拟地址</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0x00006000</td>
+<td>LDR PC, [PC, -4]</td>
+</tr>
+<tr>
+<td>0x00006004</td>
+<td>destination address</td>
+</tr>
+</tbody></table>
+<p>可以看到，从PC+4变成了PC-4，PC-4其实是[PC-8]+4。即当CPU执行到0x00006000时PC已经指向了0x00006000+2*4的位置，需要先减去8字节才得到当前执行位置，再加4字节便得到0x00006004。</p>
+<h4 id="翻译为机器码"><a href="#翻译为机器码" class="headerlink" title="翻译为机器码"></a>翻译为机器码</h4><p>将指令写入内存时需要翻译为机器码，根据文档，LDR命令的机器码格式为：</p>
+<p><img src="https://i.loli.net/2019/11/13/EPQ231VWIlYoDa5.png" alt="机器码转译规则"></p>
+<p>根据文档将指令<code>LDR PC, [PC, -4]</code>翻译为32位的二进制机器码：</p>
+<p><img src="https://i.loli.net/2019/11/13/On29L5IbVsKAxSZ.png" alt="转译机器码"></p>
+<p>其中28-31位表示执行条件，1110代表总是执行，26-27位01表示LDR，后面到20位是6个独立标志位，其中第23位U为0表示做<code>减法</code>，Rn表示基准寄存器编号，1111即为15，表示r15，也就是PC，Rd表示目标寄存器，也是PC，0-11位用来存储立即数，100就是4，这就是<code>LDR PC, [PC, -4]</code>的机器码，转换成16进制是<strong>0xe51ff004</strong>。最终得到跳转hook方法地址的程序内容如下：</p>
+<table>
+<thead>
+<tr>
+<th>虚拟地址</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0x00006000</td>
+<td>0xe51ff004</td>
+</tr>
+<tr>
+<td>0x00006004</td>
+<td>my method address</td>
+</tr>
+</tbody></table>
+<h3 id="跳回指令"><a href="#跳回指令" class="headerlink" title="跳回指令"></a>跳回指令</h3><p>跳回指令和跳转指令格式一样，只是将目标地址从hook方法的起始地址改为原函数继续执行的地址：</p>
+<table>
+<thead>
+<tr>
+<th>虚拟地址</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0x00008000</td>
+<td>0xe51ff004</td>
+</tr>
+<tr>
+<td>0x00008004</td>
+<td>return address</td>
+</tr>
+</tbody></table>
+<p>其中return address = 目标方法起始地址 + 替换指令长度 = 目标方法起始地址 + 8字节</p>
+<h3 id="指令修复"><a href="#指令修复" class="headerlink" title="指令修复"></a>指令修复</h3><p>完成了跳转和跳回指令，剩下的操作就只有补充执行原函数中被替换的原始指令了。这步是inline hook最复杂的一步，也是inline hook的难度所在。回忆下前面提到的<code>PC相对寻址</code>，实际上这种寻址方式应用相当广泛，带来的结果就是指令往往与当前的PC值强绑定。当我们手动修改程序流程，跳到hook方法再回头执行原始指令时，PC已不再是原始指令预期的值，毫无疑问会执行异常。所以执行原始指令前要进行指令修复，修复方法就是将指令中PC的值修改为预期的值（注意并不是修改PC，只是修改指令中的表示PC值的那几位数据）。</p>
+<p>指令修复需要涵盖PC相关的所有指令类型，这里只用ADD指令来举例说明：</p>
+<blockquote>
+<p>ADD Rd, [PC, Rm]</p>
+</blockquote>
+<p>对上面指令进行修复，可以预见指令的机器码中第一个操作数那几位肯定是1111（即r15=PC），我们需要将其改为一个其他寄存器Rx，而Rx中存入该指令预期的PC值，即指令被替换前的PC值。代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//执行到原方法时，pc值是原方法起始地址+8字节</span></span><br><span class="line"><span class="keyword">uint32_t</span> pc = target_addr + <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> rd;</span><br><span class="line"><span class="keyword">int</span> rm;</span><br><span class="line"><span class="keyword">int</span> r;</span><br><span class="line"></span><br><span class="line"><span class="comment">//用位运算提取出指令中用到的Rd和Rm寄存器编号</span></span><br><span class="line">rd = (instruction &amp; <span class="number">0xF000</span>) &gt;&gt; <span class="number">12</span>;</span><br><span class="line">rm = instruction &amp; <span class="number">0xF</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">//找出一个闲置寄存器r（既不是Rd也不是Rm），用来保存hook前的pc</span></span><br><span class="line"><span class="keyword">for</span> (r = <span class="number">12</span>; ; --r) &#123;</span><br><span class="line">	<span class="keyword">if</span> (r != rd &amp;&amp; r != rm) &#123;</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//将Rr的值入栈暂存</span></span><br><span class="line">trampoline_instructions[trampoline_pos++] = <span class="number">0xE52D0004</span> | (r &lt;&lt; <span class="number">12</span>);	<span class="comment">// PUSH &#123;Rr&#125;</span></span><br><span class="line"><span class="comment">//将原始pc值写入Rx</span></span><br><span class="line">trampoline_instructions[trampoline_pos++] = <span class="number">0xE59F0008</span> | (r &lt;&lt; <span class="number">12</span>);	<span class="comment">// LDR Rr, [PC, #8]</span></span><br><span class="line"><span class="comment">//用Rx编号替换指令中的PC编号</span></span><br><span class="line">trampoline_instructions[trampoline_pos++] = (instruction &amp; <span class="number">0xFFF0FFFF</span>) | (r &lt;&lt; <span class="number">16</span>);</span><br><span class="line"><span class="comment">//暂存值出栈到Rx</span></span><br><span class="line">trampoline_instructions[trampoline_pos++] = <span class="number">0xE49D0004</span> | (r &lt;&lt; <span class="number">12</span>);	<span class="comment">// POP &#123;Rr&#125;</span></span><br><span class="line"><span class="comment">//跳越4字节执行</span></span><br><span class="line">trampoline_instructions[trampoline_pos++] = <span class="number">0xE28FF000</span>;	<span class="comment">// ADD PC, PC</span></span><br><span class="line">trampoline_instructions[trampoline_pos++] = pc;</span><br></pre></td></tr></table></figure>
+
+<p>这样就完成了加法指令的修复，其他类型指令的修复方式大同小异，基本思想都是PC值替换。</p>
+<h2 id="三方库"><a href="#三方库" class="headerlink" title="三方库"></a>三方库</h2><p>实现inline hook的三方库很稀缺，已知的有Cydia Substrate，并已停止开源，官网：<a href="http://www.cydiasubstrate.com/" target="_blank" rel="noopener">http://www.cydiasubstrate.com/</a></p>
+<blockquote>
+<p>参考：<a href="http://ele7enxxh.com/Android-Arm-Inline-Hook.html" target="_blank" rel="noopener">http://ele7enxxh.com/Android-Arm-Inline-Hook.html</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/Native/" rel="tag"># Native</a>
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/" rel="tag"># 计算机基础</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2019/04/05/Appium/" rel="next" title="Appium&Cucumber搭建UI自动化测试框架">
+                  <i class="fa fa-chevron-left"></i> Appium&Cucumber搭建UI自动化测试框架
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Hook"><span class="nav-number">1.</span> <span class="nav-text">Hook</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#汇编"><span class="nav-number">2.</span> <span class="nav-text">汇编</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#寄存器"><span class="nav-number">3.</span> <span class="nav-text">寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Inline-Hook"><span class="nav-number">4.</span> <span class="nav-text">Inline Hook</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#跳转指令"><span class="nav-number">4.1.</span> <span class="nav-text">跳转指令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#寄存器间接寻址"><span class="nav-number">4.1.1.</span> <span class="nav-text">寄存器间接寻址</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#翻译为机器码"><span class="nav-number">4.1.2.</span> <span class="nav-text">翻译为机器码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#跳回指令"><span class="nav-number">4.2.</span> <span class="nav-text">跳回指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指令修复"><span class="nav-number">4.3.</span> <span class="nav-text">指令修复</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三方库"><span class="nav-number">5.</span> <span class="nav-text">三方库</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="leeon"
+      src="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <p class="site-author-name" itemprop="name">leeon</p>
+  <div class="site-description" itemprop="description">you rest, you rust</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.jianshu.com/u/bfd0aa0af4f3" title="https:&#x2F;&#x2F;www.jianshu.com&#x2F;u&#x2F;bfd0aa0af4f3" rel="noopener" target="_blank">简书</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">leeon</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

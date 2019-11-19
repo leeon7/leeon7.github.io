@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="mask-icon" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="you rest, you rust">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Leeon&#39;s Blog">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;index.html">
+<meta property="og:site_name" content="Leeon&#39;s Blog">
+<meta property="og:description" content="you rest, you rust">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: true,
+    isPost: false,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Leeon's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-152860563-1"></script>
+    <script>
+      var host = window.location.hostname;
+      if (host !== "localhost" || !true) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-152860563-1');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Leeon's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">不怕立FLAG</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/10/27/android-inline-hook/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+      <meta itemprop="name" content="leeon">
+      <meta itemprop="description" content="you rest, you rust">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Leeon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/10/27/android-inline-hook/" class="post-title-link" itemprop="url">Android Inline Hook详解</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-10-27 16:49:32" itemprop="dateCreated datePublished" datetime="2019-10-27T16:49:32+08:00">2019-10-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-11-19 16:20:58" itemprop="dateModified" datetime="2019-11-19T16:20:58+08:00">2019-11-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="Hook"><a href="#Hook" class="headerlink" title="Hook"></a>Hook</h2><p>Hook在Android系统的应用根据框架层次可以分为两类，Java层和Native层，常见的实现方式如下：</p>
+<table>
+<thead>
+<tr>
+<th>框架层次</th>
+<th>Hook手段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Java层</td>
+<td>动态代理，代码、字节码织入（AspectJ、ASM等）</td>
+</tr>
+<tr>
+<td>Native层</td>
+<td>GOT/PLT Hook，Trap Hook，Inline Hook</td>
+</tr>
+</tbody></table>
+<p>其中Native层的三种hook手段在应用范围、实现难度、性能等维度上有以下区别：</p>
+<table>
+<thead>
+<tr>
+<th>比较维度</th>
+<th>GOT/PLT Hook</th>
+<th>Trap Hook</th>
+<th>Inline Hook</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实现原理</td>
+<td>修改延时绑定表</td>
+<td>SIGTRAP断点信号</td>
+<td>运行时指令替换</td>
+</tr>
+<tr>
+<td>粒度</td>
+<td>方法级</td>
+<td>指令级</td>
+<td>指令级</td>
+</tr>
+<tr>
+<td>作用域</td>
+<td>窄</td>
+<td>广</td>
+<td>广</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>高</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>难度</td>
+<td>中</td>
+<td>中</td>
+<td>极高</td>
+</tr>
+</tbody></table>
+<p>这三种方式在实际环境中应用较多的是GOT/PLT Hook，由于只是在ELF动态链接的默认流程上稍作修改，这种方式侵入性较低，且能保证性能，可以方便的实现对so库的方法hook，唯一的缺点是只能作用于绑定表中存在的方法，作用域有一定限制。trap hook由于使用系统中断，在性能上表现不好。Inline hook是终极hook手段，通过直接修改运行时内存的方式替换指令，完全手工的完成hook及跳回操作，理论上可以实现任意位置的hook，不过手写指令时需要考虑abi兼容等众多因素，实现难度很高，实际应用的场景不多。</p>
+<h2 id="汇编"><a href="#汇编" class="headerlink" title="汇编"></a>汇编</h2><p>在手撕汇编之前，先简单回顾下基础知识</p>
+<p><img src="https://i.loli.net/2019/11/13/lMw6U4zLDosO3iG.png" alt="高级语言-低级语言转换"></p>
+<p>平时用来开发的高级语言必须转换成低级语言才能被CPU执行，根据是否有中间结果的区别，完成转换的可能是编译器或虚拟机。和百花齐放的高级语言不同，低级语言只有两种，汇编和机器码（即二进制码），汇编是机器码的文本化表示，两者是一对一的对应关系。</p>
+<p><img src="https://i.loli.net/2019/11/13/S95BeirRkmUbaEZ.png" alt="逻辑关系"></p>
+<p>逻辑上讲，汇编是为了解决机器码可读性的产物，汇编在执行前需要先翻译成机器码，这个过程叫assembing，所以汇编语言叫ASM。</p>
+<blockquote>
+<p>$ gcc -S yourfile可以将c文件编译成汇编文件.s</p>
+</blockquote>
+<h2 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h2><p><img src="https://i.loli.net/2019/11/13/KayHjRqME6NsdYm.png" alt="寄存器"></p>
+<p>为了填平运算组件（CPU）和存储单元（硬盘）的性能沟壑，会在其间加几个缓冲单元，从慢到快依次是RAM、Cache、寄存器。一般CPU会自带这些缓冲层，其中寄存器直接跟CPU交互，是读取速度最快的单位。随着发展CPU的寄存器数量从几个增长到了几十个（ARM有37个），其中前16个一般会被当作通用寄存器使用（编号0-15），而编号15的寄存器又最为特殊，一般会把r15当作program counter，熟悉JVM的同学知道在虚拟机中也有类似的概念，只是一个是虚拟的，一个是真实的：</p>
+<p><img src="https://i.loli.net/2019/11/13/sO5rtgKLcEyTe16.png" alt="PC"></p>
+<p>一般把r15当作PC寄存器，即program counter，也就是Instruction Pointer，指向程序当前执行到的那条指令。</p>
+<h2 id="Inline-Hook"><a href="#Inline-Hook" class="headerlink" title="Inline Hook"></a>Inline Hook</h2><p>回到主题，指令级别的hook跟高级语言层面的实现方式在感官上有很大区别，高级语言中不管借助什么手段，只需将hook代码织入到目标代码之中即可，但这种方式在指令级别是行不通的，见下图：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/10/27/android-inline-hook/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/05/Appium/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+      <meta itemprop="name" content="leeon">
+      <meta itemprop="description" content="you rest, you rust">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Leeon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2019/04/05/Appium/" class="post-title-link" itemprop="url">Appium&Cucumber搭建UI自动化测试框架</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-04-05 15:52:28" itemprop="dateCreated datePublished" datetime="2019-04-05T15:52:28+08:00">2019-04-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-11-19 16:20:58" itemprop="dateModified" datetime="2019-11-19T16:20:58+08:00">2019-11-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><h3 id="WebDriver协议"><a href="#WebDriver协议" class="headerlink" title="WebDriver协议"></a>WebDriver协议</h3><p>一套抽象了页面行为的HTTP协议，Request表示UI操作，Response表示页面响应结果。该协议用JSON Body来描述命令和响应内容，是JSONWireProtocol的一种应用。</p>
+<h3 id="Appium"><a href="#Appium" class="headerlink" title="Appium"></a>Appium</h3><p>一个基于WebDriver协议实现的自动化测试框架，主要针对移动端，支持原生App、Web App、Hybird App。</p>
+<p>Appium总体是一个C/S结构，即Appium Server和Appium Client。Appium Server是一个暴露一系列API的Node Server（npm install -g appium），它以HTTP Response的形式响应来自Appium Client的不同请求。Appium Client本质就是一个HTTP Request发送器，它封装了一系列API来方便的发送各种UI操作请求。Appium的这种设计优点在于Client可以被灵活的选择，不管用何种语言，何种方式，只要能够发送符合协议的HTTP Request就可以充当Appium Client。</p>
+<h3 id="Cucumber"><a href="#Cucumber" class="headerlink" title="Cucumber"></a>Cucumber</h3><p>一个实现BDD（Behavior-driven development）的框架。BDD暂不深究，我们主要关注Cucumber给自动化测试带来的改进。Cucumber为了良好的抽象<code>软件行为</code>，定义了一套DSL：Gherkin。使用Gherkin，我们可以将繁杂的自动化脚本进行拆分：将复杂的操作脚本沉淀为下层util，只暴露上层的自然语言的行为描述给开发者，大大降低脚本编写的门槛和成本。</p>
+<h2 id="工程设计"><a href="#工程设计" class="headerlink" title="工程设计"></a>工程设计</h2><h3 id="总体结构"><a href="#总体结构" class="headerlink" title="总体结构"></a>总体结构</h3><p><img src="https://i.loli.net/2019/11/13/kpZyntLc7ITqF5O.png" alt="工程结构"></p>
+<p>工程总体是一个node工程，主要依赖了<code>webdriverio</code>，<code>cucumber</code>，<code>chai</code>三个npm包。 </p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2019/04/05/Appium/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+        
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/12/fat-aar/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+      <meta itemprop="name" content="leeon">
+      <meta itemprop="description" content="you rest, you rust">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Leeon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          
+            <a href="/2018/09/12/fat-aar/" class="post-title-link" itemprop="url">合并AAR踩坑之旅</a>
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-09-12 11:21:06" itemprop="dateCreated datePublished" datetime="2018-09-12T11:21:06+08:00">2018-09-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-11-19 16:20:58" itemprop="dateModified" datetime="2019-11-19T16:20:58+08:00">2019-11-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在输出Android模块时，有时会因为个别原因（比如来自业务的不可抗力），要求将模块打包成一个文件提供给接入方。这就意味着在输出模块由多个子模块组成的情况下，我们需要把多个AAR（或JAR）合并成一个大AAR输出，这个合并过程涉及到了很多有用的知识和难点，这篇文章就详细解析下其中的内容。</p>
+<h3 id="认识AAR"><a href="#认识AAR" class="headerlink" title="认识AAR"></a>认识AAR</h3><p>AAR文件是一种Android归档包（类比Jar：Java Archive），这种归档包是由Gradle构建库的Android Library插件产出的。它是一个压缩包，里面的内容可以总结为5个目录和5个文件：</p>
+<p><img src="https://i.loli.net/2019/11/13/oJGSOwfF1QDBl8W.png" alt="AAR文件内容">))</p>
+<p><code>*：卖个关子，在上面10个内容中，其中有一个是已经合并后的结果，它默认已经包含了所有子模块的内容，你能猜出来是那个么？</code></p>
+<p>图里文字已经基本解释清楚了各个内容，不再赘述，现在我们根据现有的了解设想下合并AAR的大致思路：AAR里无非是几个目录和文件，所以最终AAR的5个目录下，必然包含了所有子模块的对应内容，而5个文件也肯定是各个子文件合并的结果。那么如何实现包含和合并呢？第一反应是写个脚本对AAR们做解压、整合，再压缩的思路，但稍微推演下就知道不现实（理论上也不可行，AAR和普通压缩文件还是有区别的），再思考下，既然直接拿产物做合并不可行，能不能在构建主模块AAR时，就顺便将子模块内容纳入进来呢？这无疑是个优雅的思路，理论上是否可行呢？答案是可以的，别忘了AAR是Android Gradle Plugin构建产出的，而Gradle强大的拓展支持刚好能实现我们的需求。所以合并AAR的方法，其实就是修改Gradle构建流程，在默认构建的基础上，插入我们自己的操作，最终产出一个包含子模块内容的大AAR。</p>
+<p>在入题之前，有必要先理解下Gradle是如何支持构建拓展的，下图是Gradle官网截图：</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/09/12/fat-aar/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+  </div>
+
+  
+
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="leeon"
+      src="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <p class="site-author-name" itemprop="name">leeon</p>
+  <div class="site-description" itemprop="description">you rest, you rust</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.jianshu.com/u/bfd0aa0af4f3" title="https:&#x2F;&#x2F;www.jianshu.com&#x2F;u&#x2F;bfd0aa0af4f3" rel="noopener" target="_blank">简书</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">leeon</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

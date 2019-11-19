@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="mask-icon" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="背景知识WebDriver协议一套抽象了页面行为的HTTP协议，Request表示UI操作，Response表示页面响应结果。该协议用JSON Body来描述命令和响应内容，是JSONWireProtocol的一种应用。 Appium一个基于WebDriver协议实现的自动化测试框架，主要针对移动端，支持原生App、Web App、Hybird App。 Appium总体是一个C&#x2F;S结构，即App">
+<meta name="keywords" content="UI自动化,测试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Appium&amp;Cucumber搭建UI自动化测试框架">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;04&#x2F;05&#x2F;Appium&#x2F;index.html">
+<meta property="og:site_name" content="Leeon&#39;s Blog">
+<meta property="og:description" content="背景知识WebDriver协议一套抽象了页面行为的HTTP协议，Request表示UI操作，Response表示页面响应结果。该协议用JSON Body来描述命令和响应内容，是JSONWireProtocol的一种应用。 Appium一个基于WebDriver协议实现的自动化测试框架，主要针对移动端，支持原生App、Web App、Hybird App。 Appium总体是一个C&#x2F;S结构，即App">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;kpZyntLc7ITqF5O.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;SvboPOmedsKTfr1.png">
+<meta property="og:updated_time" content="2019-11-19T08:20:58.725Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;kpZyntLc7ITqF5O.png">
+
+<link rel="canonical" href="http://yoursite.com/2019/04/05/Appium/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>Appium&Cucumber搭建UI自动化测试框架 | Leeon's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-152860563-1"></script>
+    <script>
+      var host = window.location.hostname;
+      if (host !== "localhost" || !true) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-152860563-1');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Leeon's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">不怕立FLAG</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/04/05/Appium/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+      <meta itemprop="name" content="leeon">
+      <meta itemprop="description" content="you rest, you rust">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Leeon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Appium&Cucumber搭建UI自动化测试框架
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2019-04-05 15:52:28" itemprop="dateCreated datePublished" datetime="2019-04-05T15:52:28+08:00">2019-04-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-11-19 16:20:58" itemprop="dateModified" datetime="2019-11-19T16:20:58+08:00">2019-11-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="背景知识"><a href="#背景知识" class="headerlink" title="背景知识"></a>背景知识</h2><h3 id="WebDriver协议"><a href="#WebDriver协议" class="headerlink" title="WebDriver协议"></a>WebDriver协议</h3><p>一套抽象了页面行为的HTTP协议，Request表示UI操作，Response表示页面响应结果。该协议用JSON Body来描述命令和响应内容，是JSONWireProtocol的一种应用。</p>
+<h3 id="Appium"><a href="#Appium" class="headerlink" title="Appium"></a>Appium</h3><p>一个基于WebDriver协议实现的自动化测试框架，主要针对移动端，支持原生App、Web App、Hybird App。</p>
+<p>Appium总体是一个C/S结构，即Appium Server和Appium Client。Appium Server是一个暴露一系列API的Node Server（npm install -g appium），它以HTTP Response的形式响应来自Appium Client的不同请求。Appium Client本质就是一个HTTP Request发送器，它封装了一系列API来方便的发送各种UI操作请求。Appium的这种设计优点在于Client可以被灵活的选择，不管用何种语言，何种方式，只要能够发送符合协议的HTTP Request就可以充当Appium Client。</p>
+<h3 id="Cucumber"><a href="#Cucumber" class="headerlink" title="Cucumber"></a>Cucumber</h3><p>一个实现BDD（Behavior-driven development）的框架。BDD暂不深究，我们主要关注Cucumber给自动化测试带来的改进。Cucumber为了良好的抽象<code>软件行为</code>，定义了一套DSL：Gherkin。使用Gherkin，我们可以将繁杂的自动化脚本进行拆分：将复杂的操作脚本沉淀为下层util，只暴露上层的自然语言的行为描述给开发者，大大降低脚本编写的门槛和成本。</p>
+<h2 id="工程设计"><a href="#工程设计" class="headerlink" title="工程设计"></a>工程设计</h2><h3 id="总体结构"><a href="#总体结构" class="headerlink" title="总体结构"></a>总体结构</h3><p><img src="https://i.loli.net/2019/11/13/kpZyntLc7ITqF5O.png" alt="工程结构"></p>
+<p>工程总体是一个node工程，主要依赖了<code>webdriverio</code>，<code>cucumber</code>，<code>chai</code>三个npm包。 </p>
+<a id="more"></a>
+
+<h4 id="WebdricerIO"><a href="#WebdricerIO" class="headerlink" title="WebdricerIO"></a>WebdricerIO</h4><p>WebdriverIO是用Javascript实现的Appium Client，我们选用v4版本，因为v5暂不兼容Cucumber。</p>
+<p>工程根目录的wdio.conf.js定义了WebdriverIO的初始化参数，主要定义当前Client要连接的Server地址及端口，需要连接的HTTP会话，测试脚本路径等信息。其中，配置文件里的capabilities数组代表当前Client需要开启的HTTP Session。每个capability对象代表一个Session，并定义了当前会话的测试目标，比如目标安装包路径、目标平台（Android/iOS）、目标测试设备等参数。详见<a href="http://v4.webdriver.io/guide/testrunner/configurationfile.html" target="_blank" rel="noopener">configurationfile</a>和<a href="http://appium.io/docs/en/writing-running-appium/caps/" target="_blank" rel="noopener">Capabilities</a></p>
+<h4 id="Cucumber-1"><a href="#Cucumber-1" class="headerlink" title="Cucumber"></a>Cucumber</h4><p>配置文件里的cucumberOpts完成对Cucumber的配置，主要关注<code>require: [&#39;./src/**/*.js&#39;]</code>参数，表示转译脚本的目录。</p>
+<h4 id="Chai"><a href="#Chai" class="headerlink" title="Chai"></a>Chai</h4><p>断言库，用来得出测试结果。</p>
+<h3 id="详细设计"><a href="#详细设计" class="headerlink" title="详细设计"></a>详细设计</h3><h4 id="脚本目录"><a href="#脚本目录" class="headerlink" title="脚本目录"></a>脚本目录</h4><blockquote>
+<p>/features</p>
+</blockquote>
+<p>feature文件目录，feature文件即是Gherkin脚本文件，旨在使用一种<code>自然语言</code>描述一个可验证行为。</p>
+<p>假如要测试一个点击按钮显示今天上不上班的App，那么我们的feature文件是这样的:</p>
+<p><img src="https://i.loli.net/2019/11/13/SvboPOmedsKTfr1.png" alt="feature"></p>
+<p>蓝色文字是Gherkin的保留关键字</p>
+<p><code>今天是</code>、<code>我点击</code>、<code>显示</code>是页面行为，需要转译为Appium Client的API操作</p>
+<p>单引号内的文字是输入参数</p>
+<blockquote>
+<p>/src</p>
+</blockquote>
+<p>src存放<strong>负责转译Gherkin</strong>的js脚本和其他脚本</p>
+<p>先看src/steps/*.js</p>
+<p>该目录下的js文件负责对feature文件完成转译，以上面的feature为例，转译脚本如下：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> &#123; Given, When, Then &#125; = <span class="built_in">require</span>(<span class="string">'cucumber'</span>);</span><br><span class="line"><span class="keyword">const</span> assert = <span class="built_in">require</span>(<span class="string">'chai'</span>).assert;</span><br><span class="line"></span><br><span class="line">Given(<span class="string">'今天是 &#123;string&#125;'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">string</span>) </span>&#123;</span><br><span class="line">    browser.setToday(string);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">When(<span class="string">'我点击 &#123;string&#125;'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">text</span>) </span>&#123;</span><br><span class="line">    browser.clickText(text);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">Then(<span class="string">'显示 &#123;string&#125;'</span>, <span class="function"><span class="keyword">function</span> (<span class="params">string</span>) </span>&#123;</span><br><span class="line">    assert.equal(string, browser.getPageContent());</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><code>Given</code>, <code>When</code>, <code>Then</code>分别对应<code>假如</code>，<code>当</code>，<code>那么</code>。</p>
+<p>单引号里的字符串匹配feature中的<code>页面行为</code>和<code>入参</code>，最终进入后面的function里，使用browser对象（即Appium Client的全局对象）请求执行不同的UI操作，即完成了转译。</p>
+<p>除了转译脚本外，还会沉淀一些utils到这个目录下，主要是对Client API的再次封装。比如查找元素的API: browser.element(string)，如果直接使用会经常因为页面未加载完而找不到元素，需要设置一个等待机制。utils.js便将封装好的方法内置到browser对象里，以方便上层调用。</p>
+<p>Webdriverio Client的详细API文档见<a href="http://v4.webdriver.io/api.html" target="_blank" rel="noopener">http://v4.webdriver.io/api.html</a></p>
+<p>在配置文件里提到的<code>require: [&#39;./src/*/.js&#39;]</code>参数，指向的就是转译js脚本的路径，因为这些脚本需要在执行feature文件之前被加载</p>
+<h4 id="Selector"><a href="#Selector" class="headerlink" title="Selector"></a>Selector</h4><p>UI自动化，核心是查找页面元素，因为几乎所有的页面操作（点击、输入、获取文本等）都要先准确地找到视图元素。webdriverio查找元素的方法：browser.element(string)只有一个入参，这个入参就叫selector，是一个字符串，它描述了Client希望找到一个或一组什么样的页面元素。所以，如何给目标元素编写selector是很关键的，它直接决定了我们的用例可执行与否。</p>
+<p>官方的<a href="http://v4.webdriver.io/guide/usage/selectors.html" target="_blank" rel="noopener">Selector文档</a>基本演示了各种定位元素的策略。需要注意的是，针对原生控件，推荐使用各自平台的Selectors格式（UiSelector/UIATarget），以达到最高的成功率。前端页面则可做到平台无关。这意味着，我们可以在src目录下沉淀不同平台的Selector Generator，方便上层调用。</p>
+<p>另外强调一个点，如何方便、迅速、优雅的查找元素，<code>不一定只有优化selector一条路可以走，适当的从规范控件设计，页面结构等方向入手，往往可以事半功倍</code>。总之是一个平衡的问题。</p>
+<h2 id="后续"><a href="#后续" class="headerlink" title="后续"></a>后续</h2><p>有几个方向会有拓展价值和必要</p>
+<ol>
+<li>不断沉淀基础操作的js脚本，越来越多的写feature，越来越少的写js</li>
+<li>稳定性保证，retry机制</li>
+<li>错误捕获等hook操作，现已支持错误页面截图</li>
+<li>集成CI</li>
+<li>测试服务机搭建，多设备，多任务执行</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/UI%E8%87%AA%E5%8A%A8%E5%8C%96/" rel="tag"># UI自动化</a>
+              <a href="/tags/%E6%B5%8B%E8%AF%95/" rel="tag"># 测试</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/2018/09/12/fat-aar/" rel="next" title="合并AAR踩坑之旅">
+                  <i class="fa fa-chevron-left"></i> 合并AAR踩坑之旅
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2019/10/27/android-inline-hook/" rel="prev" title="Android Inline Hook详解">
+                  Android Inline Hook详解 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景知识"><span class="nav-number">1.</span> <span class="nav-text">背景知识</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WebDriver协议"><span class="nav-number">1.1.</span> <span class="nav-text">WebDriver协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Appium"><span class="nav-number">1.2.</span> <span class="nav-text">Appium</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cucumber"><span class="nav-number">1.3.</span> <span class="nav-text">Cucumber</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工程设计"><span class="nav-number">2.</span> <span class="nav-text">工程设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#总体结构"><span class="nav-number">2.1.</span> <span class="nav-text">总体结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#WebdricerIO"><span class="nav-number">2.1.1.</span> <span class="nav-text">WebdricerIO</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cucumber-1"><span class="nav-number">2.1.2.</span> <span class="nav-text">Cucumber</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Chai"><span class="nav-number">2.1.3.</span> <span class="nav-text">Chai</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#详细设计"><span class="nav-number">2.2.</span> <span class="nav-text">详细设计</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#脚本目录"><span class="nav-number">2.2.1.</span> <span class="nav-text">脚本目录</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Selector"><span class="nav-number">2.2.2.</span> <span class="nav-text">Selector</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后续"><span class="nav-number">3.</span> <span class="nav-text">后续</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="leeon"
+      src="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <p class="site-author-name" itemprop="name">leeon</p>
+  <div class="site-description" itemprop="description">you rest, you rust</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.jianshu.com/u/bfd0aa0af4f3" title="https:&#x2F;&#x2F;www.jianshu.com&#x2F;u&#x2F;bfd0aa0af4f3" rel="noopener" target="_blank">简书</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">leeon</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

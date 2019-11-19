@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <link rel="mask-icon" href="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="背景在输出Android模块时，有时会因为个别原因（比如来自业务的不可抗力），要求将模块打包成一个文件提供给接入方。这就意味着在输出模块由多个子模块组成的情况下，我们需要把多个AAR（或JAR）合并成一个大AAR输出，这个合并过程涉及到了很多有用的知识和难点，这篇文章就详细解析下其中的内容。 认识AARAAR文件是一种Android归档包（类比Jar：Java Archive），这种归档包是由Gr">
+<meta name="keywords" content="Android,Gradle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="合并AAR踩坑之旅">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2018&#x2F;09&#x2F;12&#x2F;fat-aar&#x2F;index.html">
+<meta property="og:site_name" content="Leeon&#39;s Blog">
+<meta property="og:description" content="背景在输出Android模块时，有时会因为个别原因（比如来自业务的不可抗力），要求将模块打包成一个文件提供给接入方。这就意味着在输出模块由多个子模块组成的情况下，我们需要把多个AAR（或JAR）合并成一个大AAR输出，这个合并过程涉及到了很多有用的知识和难点，这篇文章就详细解析下其中的内容。 认识AARAAR文件是一种Android归档包（类比Jar：Java Archive），这种归档包是由Gr">
+<meta property="og:locale" content="en">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;oJGSOwfF1QDBl8W.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;aduKx84RSBE7fHz.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;5GYqshztyo2vDNS.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;SfeVAYCzpFXbGjU.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;zLiJ5lXuIsjxroM.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;7RNFpBMxoKGOhly.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;l5iHQ3CTKvNg94n.png">
+<meta property="og:updated_time" content="2019-11-19T08:20:58.726Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;i.loli.net&#x2F;2019&#x2F;11&#x2F;13&#x2F;oJGSOwfF1QDBl8W.png">
+
+<link rel="canonical" href="http://yoursite.com/2018/09/12/fat-aar/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>合并AAR踩坑之旅 | Leeon's Blog</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-152860563-1"></script>
+    <script>
+      var host = window.location.hostname;
+      if (host !== "localhost" || !true) {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-152860563-1');
+      }
+    </script>
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Leeon's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <p class="site-subtitle">不怕立FLAG</p>
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>Archives</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="en">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/12/fat-aar/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+      <meta itemprop="name" content="leeon">
+      <meta itemprop="description" content="you rest, you rust">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Leeon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          合并AAR踩坑之旅
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2018-09-12 11:21:06" itemprop="dateCreated datePublished" datetime="2018-09-12T11:21:06+08:00">2018-09-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2019-11-19 16:20:58" itemprop="dateModified" datetime="2019-11-19T16:20:58+08:00">2019-11-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在输出Android模块时，有时会因为个别原因（比如来自业务的不可抗力），要求将模块打包成一个文件提供给接入方。这就意味着在输出模块由多个子模块组成的情况下，我们需要把多个AAR（或JAR）合并成一个大AAR输出，这个合并过程涉及到了很多有用的知识和难点，这篇文章就详细解析下其中的内容。</p>
+<h3 id="认识AAR"><a href="#认识AAR" class="headerlink" title="认识AAR"></a>认识AAR</h3><p>AAR文件是一种Android归档包（类比Jar：Java Archive），这种归档包是由Gradle构建库的Android Library插件产出的。它是一个压缩包，里面的内容可以总结为5个目录和5个文件：</p>
+<p><img src="https://i.loli.net/2019/11/13/oJGSOwfF1QDBl8W.png" alt="AAR文件内容">))</p>
+<p><code>*：卖个关子，在上面10个内容中，其中有一个是已经合并后的结果，它默认已经包含了所有子模块的内容，你能猜出来是那个么？</code></p>
+<p>图里文字已经基本解释清楚了各个内容，不再赘述，现在我们根据现有的了解设想下合并AAR的大致思路：AAR里无非是几个目录和文件，所以最终AAR的5个目录下，必然包含了所有子模块的对应内容，而5个文件也肯定是各个子文件合并的结果。那么如何实现包含和合并呢？第一反应是写个脚本对AAR们做解压、整合，再压缩的思路，但稍微推演下就知道不现实（理论上也不可行，AAR和普通压缩文件还是有区别的），再思考下，既然直接拿产物做合并不可行，能不能在构建主模块AAR时，就顺便将子模块内容纳入进来呢？这无疑是个优雅的思路，理论上是否可行呢？答案是可以的，别忘了AAR是Android Gradle Plugin构建产出的，而Gradle强大的拓展支持刚好能实现我们的需求。所以合并AAR的方法，其实就是修改Gradle构建流程，在默认构建的基础上，插入我们自己的操作，最终产出一个包含子模块内容的大AAR。</p>
+<p>在入题之前，有必要先理解下Gradle是如何支持构建拓展的，下图是Gradle官网截图：</p>
+<a id="more"></a>
+
+<p><img src="https://i.loli.net/2019/11/13/aduKx84RSBE7fHz.png" alt="Gradle描述及生命周期"></p>
+<p>Gradle中定义了<code>Project</code>和<code>Task</code>两个概念，同时也将构建流程<code>面向对象</code>化（即构建是针对Project执行的一系列Task）。对Gradle的描述关键在于<code>基于依赖编程</code>，具体解释就是可以用Gradle来定义Task和Task间的<code>依赖关系</code>，最终得出一个Task的<a href="https://zh.wikipedia.org/wiki/%E6%9C%89%E5%90%91%E6%97%A0%E7%8E%AF%E5%9B%BE" target="_blank" rel="noopener">有向无环图</a>来描述构建。这意味着，我们需要将合并的操作封装为Task，并在合适的生命周期内，将自定义Task插入到任务图的依赖关系中去，进而得出一个新的Task图，最终构建出我们要的产物。</p>
+<p>我们在主工程下执行./gradlew assembleRelease，看一下默认构建中都执行了哪些Task：</p>
+<p><img src="https://i.loli.net/2019/11/13/5GYqshztyo2vDNS.png" alt="默认构建"></p>
+<p>可以看到依次执行了收集依赖，合并资源、Javac编译、打包文件等Task。同时，通过观察<code>/build/intermediates</code>目录可以发现，不同任务会产出各自的构建中间结果，最终的AAR就是由这些中间结果打包而来的。所以理论上，我们需要在主模块执行打包Task前将子模块内容混入到中间结果中，而由于构建Task间存在依赖关系，混入操作需要分阶段、找时机执行。</p>
+<p>合并前需要先确定到底需要合并哪些子模块。我们通过定义一个dependency configuration: emeded来标记需要被合并的模块，然后在gradle构建的afterEvaluate阶段收集被emeded依赖的模块信息：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">afterEvaluate &#123;</span><br><span class="line">    <span class="keyword">def</span> <span class="keyword">dependencies</span> = <span class="keyword">new</span> ArrayList(<span class="keyword">configurations</span>.embedded.resolvedConfiguration.firstLevelModuleDependencies)</span><br><span class="line">    <span class="keyword">dependencies</span>.<span class="keyword">reverseEach</span> &#123;</span><br><span class="line">        ...</span><br><span class="line">        it.moduleArtifacts.<span class="keyword">each</span> &#123;</span><br><span class="line">            artifact -&gt;</span><br><span class="line">                <span class="keyword">if</span> (artifact.type == <span class="string">'aar'</span>) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (!embeddedAarFiles.contains(artifact)) &#123;</span><br><span class="line">                        <span class="comment">//要合并的AAR文件</span></span><br><span class="line">                        embeddedAarFiles.add(artifact)</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (!embeddedAarDirs.contains(modulePath)) &#123;</span><br><span class="line">                        ...</span><br><span class="line">                        <span class="comment">//每个AAR的解压目录</span></span><br><span class="line">                        embeddedAarDirs.add(modulePath)</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (artifact.type == <span class="string">'jar'</span>) &#123;</span><br><span class="line">                    ...</span><br><span class="line">                    <span class="comment">//要合并的JAR文件</span></span><br><span class="line">                    embeddedJars.add(artifactPath)</span><br><span class="line">                &#125; </span><br><span class="line">                ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出，我们收集了三个集合：</p>
+<ul>
+<li>要合并的AAR文件</li>
+<li>每个AAR的解压目录</li>
+<li>要合并的JAR文件</li>
+</ul>
+<p>AAR和JAR分开收集是因为合并这两种文件的操作不同，JAR只需纳入将其Class文件，而AAR需要合并更多内容。</p>
+<p>下面针对AAR中的5和目录和5个文件，逐个介绍合并Task，从最简单的开始：</p>
+<h3 id="assets目录"><a href="#assets目录" class="headerlink" title="/assets目录"></a>/assets目录</h3><p>合并assets内容的Task很简单，只需将子模块解压后的assets目录添加到主工程的assets.srcDirs中即可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">task embedAssets &lt;&lt; &#123;</span><br><span class="line">    embeddedAarDirs.each &#123; aarPath -&gt;</span><br><span class="line">        android.sourceSets.main.assets.srcDirs += file(&quot;$aarPath/assets&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="res目录"><a href="#res目录" class="headerlink" title="/res目录"></a>/res目录</h3><p>通过conventionMapping，修改构建流程<code>task packageRecourses</code>的输入集合，将收集到的子模块/res目录追加到Task输入参数中</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">task</span> embedLibraryResources &lt;&lt; &#123;</span><br><span class="line">    <span class="keyword">def</span> oldInputResourceSet = task_packageResources.inputResourceSets</span><br><span class="line">    task_packageResources.conventionMapping.map(<span class="string">"inputResourceSets"</span>) &#123;</span><br><span class="line">        getMergedInputResourceSets(oldInputResourceSet)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">private</span> List getMergedInputResourceSets(List inputResourceSet) &#123;</span><br><span class="line">    ...</span><br><span class="line">    List newInputResourceSet = <span class="keyword">new</span> ArrayList(inputResourceSet)</span><br><span class="line">    embeddedAarDirs.<span class="keyword">each</span> &#123; aarPath -&gt;</span><br><span class="line">        ...</span><br><span class="line">        rs.addSource(<span class="keyword">file</span>(<span class="string">"$aarPath/res"</span>))</span><br><span class="line">        newInputResourceSet += rs</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> newInputResourceSet</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="jni目录"><a href="#jni目录" class="headerlink" title="/jni目录"></a>/jni目录</h3><p>遍历子模块解压目录，将其中的so文件copy到主工程build目录下</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">task</span> embedJniLibs &lt;&lt; &#123;</span><br><span class="line">    embeddedAarDirs.<span class="keyword">each</span> &#123; aarPath -&gt;</span><br><span class="line">        <span class="keyword">copy</span> &#123;</span><br><span class="line">            <span class="keyword">from</span> <span class="keyword">fileTree</span>(dir: <span class="string">"$aarPath/jni"</span>)</span><br><span class="line">            <span class="keyword">into</span> <span class="keyword">file</span>(<span class="string">"$bundle_release_dir/jni"</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="proguard-txt"><a href="#proguard-txt" class="headerlink" title="proguard.txt"></a>proguard.txt</h3><p><code>注意：这个文件与AAR构建自身时的混淆操作无关，只作用于接入到宿主后的混淆操作</code></p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">task</span> embedProguard &lt;&lt; &#123;</span><br><span class="line">    <span class="comment">//bundle_release_dir = "build/intermediates/bundles/release"</span></span><br><span class="line">    <span class="keyword">def</span> proguardFile = <span class="keyword">file</span>(<span class="string">"$bundle_release_dir/proguard.txt"</span>)</span><br><span class="line">    <span class="comment">//遍历aar解压目录，将子模块的proguard.txt文件内容追加到主工程build目录内的proguard.txt中</span></span><br><span class="line">    embeddedAarDirs.<span class="keyword">each</span> &#123; aarPath -&gt;</span><br><span class="line">         ...</span><br><span class="line">         <span class="keyword">def</span> proguardLibFile = <span class="keyword">file</span>(<span class="string">"$aarPath/proguard.txt"</span>)</span><br><span class="line">         <span class="keyword">if</span> (proguardLibFile.exists())</span><br><span class="line">            <span class="comment">//调用file.append()方法可以在txt文件里追加内容</span></span><br><span class="line">            proguardFile.<span class="keyword">append</span>(<span class="string">"\n"</span> + proguardLibFile.text)</span><br><span class="line">         ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="AndroidManifest-xml"><a href="#AndroidManifest-xml" class="headerlink" title="AndroidManifest.xml"></a>AndroidManifest.xml</h3><p>合并AndroidManifest使用官方库manifest-merger即可，这里遇到了第一个难点：想要把子模块AndroidManifest合并进来必须使用MergeType为<code>APPLICATION</code>的ManifestMerger对象，但在这种MergeType下会替换定义在AndroidManifest里的PlaceHolder，比如<code>${applicationId}</code>。然而矛盾的是，此时的构建还没有接入到宿主App，也就拿不到最终的ApplicationId，怎么办呢？通过阅读源码发现，官方仁慈的给我们开放了一个功能位，通过在初始化ManifestMerger对象时传入一个<code>NO_PLACEHOLDER_REPLACEMENT</code>功能位，即可禁止在APPLICATION模式下替换PlaceHolder。</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">buildscript</span> &#123;</span><br><span class="line">    <span class="keyword">repositories</span> &#123;</span><br><span class="line">        jcenter()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">dependencies</span> &#123;</span><br><span class="line">        <span class="keyword">classpath</span> <span class="string">'com.android.tools.build:manifest-merger:25.3.2'</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">...</span><br><span class="line"><span class="keyword">task</span> embedManifests &lt;&lt; &#123;</span><br><span class="line">  ...</span><br><span class="line">  embeddedAarDirs.<span class="keyword">each</span> &#123; aarPath -&gt;</span><br><span class="line">      <span class="keyword">File</span> dependencyManifest = <span class="keyword">file</span>(<span class="string">"$aarPath/AndroidManifest.xml"</span>)</span><br><span class="line">      <span class="keyword">if</span> (!libraryManifests.contains(aarPath) &amp;&amp; dependencyManifest.exists()) &#123;</span><br><span class="line">          <span class="comment">//先收集需要合并的子模块AndroidManifest</span></span><br><span class="line">          libraryManifests.add(dependencyManifest)</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">  Invoker manifestMergerInvoker = ManifestMerger2.newMerger(origManifest, mLogger, MergeType.APPLICATION)</span><br><span class="line">        <span class="comment">//通过Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT这个Flag禁止执行PlaceHolder替换</span></span><br><span class="line">        .withFeatures(Invoker.Feature.NO_PLACEHOLDER_REPLACEMENT)</span><br><span class="line">  manifestMergerInvoker.addLibraryManifests(libraryManifests.toArray(<span class="keyword">new</span> <span class="keyword">File</span>[libraryManifests.<span class="keyword">size</span>()]))</span><br><span class="line">  manifestMergerInvoker.setMergeReportFile(reportFile);</span><br><span class="line">  <span class="comment">//执行合并</span></span><br><span class="line">  MergingReport mergingReport = manifestMergerInvoker.merge();</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="classes-jar"><a href="#classes-jar" class="headerlink" title="classes.jar"></a>classes.jar</h3><p>这似乎是最重要的文件，但是合并方法却不难：对于AAR类型的子模块，我们需要提取两样东西：一是解压子模块内部classes.jar得到的Class文件，二是看看子模块内部有没有自身携带的JAR文件。对于Class文件，将它们copy到主工程<code>build/intermediates/classes/release</code>目录下，随后的构建任务会从这个目录打包出主模块的classes.jar；对于子模块内部的JAR文件，将它们和JAR类型的子模块一起，放入主工程的<code>build/intermediates/bundles/release/libs</code>目录下，作为依赖包携带即可</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">task</span> embedClassesAndJars(dependsOn: embedRJar) &lt;&lt; &#123;</span><br><span class="line">    embeddedAarDirs.<span class="keyword">each</span> &#123; aarPath -&gt;</span><br><span class="line">        ...</span><br><span class="line">        embeddedAarFiles.<span class="keyword">each</span> &#123;</span><br><span class="line">                artifact -&gt;</span><br><span class="line">                    ...</span><br><span class="line">                    <span class="comment">//找到每个aar里的clasess.jar</span></span><br><span class="line">                    <span class="keyword">def</span> aarFile = aarFileTree.files.<span class="keyword">find</span> &#123; it.name.contains(<span class="string">"classes.jar"</span>) &#125;</span><br><span class="line">                    <span class="comment">// 解压clasess.jar，将classes放入build/intermediates/classes/release</span></span><br><span class="line">                    <span class="keyword">copy</span> &#123;</span><br><span class="line">                        <span class="keyword">from</span> zipTree(aarFile)</span><br><span class="line">                        <span class="keyword">into</span> classes_dir</span><br><span class="line">                    &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">//找到每个aar里携带的额外jar包</span></span><br><span class="line">        <span class="keyword">FileTree</span> jars = <span class="keyword">fileTree</span>(dir: jar_dir, <span class="keyword">include</span>: <span class="string">'*.jar'</span>, <span class="keyword">exclude</span>: <span class="string">'classes.jar'</span>)</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">//放入build/intermediates/bundles/release/libs</span></span><br><span class="line">        <span class="keyword">copy</span> &#123;</span><br><span class="line">            <span class="keyword">from</span> jars</span><br><span class="line">            <span class="keyword">into</span> <span class="keyword">file</span>(<span class="string">"$bundle_release_dir/libs"</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//主工程直接依赖的jar包，也放入build/intermediates/bundles/release/libs</span></span><br><span class="line">    <span class="keyword">copy</span> &#123;</span><br><span class="line">        <span class="keyword">from</span> embeddedJars</span><br><span class="line">        <span class="keyword">into</span> <span class="keyword">file</span>(<span class="string">"$bundle_release_dir/libs"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="R文件"><a href="#R文件" class="headerlink" title="R文件"></a>R文件</h3><p>至此，我们已经合并了三个文件和四个目录：<br><img src="https://i.loli.net/2019/11/13/SfeVAYCzpFXbGjU.png" alt="已合并的内容"></p>
+<p>剩下的内容里，/aidl目录和annotation.zip不常用到，我们暂不理会，乍一看好像已经合并完成了，只剩下个看似无害的R.txt，它是干嘛用的？我们当真完成了么？答案是没有，假如按照目前的改造构建出一个AAR并接入到App中运行，结果是App会在每一处使用到AAR子模块资源文件的时候崩溃，堆栈日志很简单：<code>NoClassDefFoundError</code> - 没有子模块包名下的R文件。啊~忘了R文件这个东西了！可R文件不是构建时自动生成的么？没错，是自动生成的，但由于我们合并了模块，子模块将丢失它们的R文件，仔细梳理下App构建流程就会发现原因：<br><img src="https://i.loli.net/2019/11/13/zLiJ5lXuIsjxroM.png" alt="构建历程对比"><br>如图上部所示，正常情况下，不管是主模块还是子模块，都是作为一个个独立的dependence引入到宿主工程的，App构建时会给每一个dependence生成它们包名下的R文件；而当我们自主的将一群AAR合并为一个AAR后（图下半部），对于宿主来说最后只接入了一个dependence（主模块），子模块本该对应的dependences不存在了，所以App构建时只给主模块生成了R文件！知道原因了，怎么解决呢？我们知道，构建主模块时，会在<code>/build/generated/source/r</code>目录下生成所有包名的R文件，当然也包括子模块R文件，那么我们把这个目录下的子模块R文件打成Jar包，放入主工程<code>build/intermediates/bundles/release/libs</code>目录下，这样R.jar会作为依赖库被AAR携带，不就可以了吗？我们兴冲冲地改了脚本，再次构建运行，结果还是崩溃！看下堆栈信息，提示资源找不到：<code>Resources$NotFoundException</code>，这又是为什么？R文件可是自动生成的呀？为什么生成的文件内容（也就是资源ID）找不到对应资源？<br>在解释原因之前，先抛几个问题：</p>
+<ul>
+<li>AAR里默认有R文件么？</li>
+<li>为什么Android Library工程生成的R.java里的域不是final修饰的？</li>
+<li>生成R文件流程的输出无疑是R.java，那么输入是什么？</li>
+</ul>
+<p>在回答这些问题之前，先复习下Java基础知识，下面是一段简单的Java代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SOME_ID = <span class="number">0x07111111</span>;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getID</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> SOME_ID;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>假如我们将SOME_ID的<code>final</code>修饰符去掉，那么编译后的字节码跟不去掉<code>final</code>相比，会有什么不同呢？我们反编译看下结果：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//带final修饰符</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SOME_ID = <span class="number">118558993</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getID</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">118558993</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//不带final修饰符</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> SOME_ID = <span class="number">118558993</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Test</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getID</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> SOME_ID;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对比发现，带<code>final</code>时，getID()方法直接返回了数值；而不带<code>final</code>时，getID()方法返回的是SOME_ID，即依然保留着对变量的符号引用。这个看似不起眼的差别却暗藏玄机，看下图：<br><img src="https://i.loli.net/2019/11/13/7RNFpBMxoKGOhly.png" alt="构建历程"><br>如图，每个AAR被接入后，都会跟随App工程再经历一次构建，即宿主工程的构建。而我们知道，R文件是跟随每次构建重新生成的（<code>不管是AAR的构建还是App的构建</code>），而R.java中每个域的值是由当前工程的资源集合做排列得出的，这意味着，假如工程的资源集合发生了变化，那么R.java中域的值都可能发生变化。对于AAR文件来说，自身工程的资源集合必然和宿主工程的资源集合不一样，或者可以这样理解，R.java的值是<code>一次性</code>的，它只保证在当前构建结果下有效，这次生成的R文件，不保证在下次构建后可用，这也是每次构建都重新生成R文件的原因。这样我们就找到了上面的崩溃原因和抛出的前两个问题的答案：AAR接入到App后跟随App又经历了一次构建，资源发生了重排列，所以手动打到AAR中的R文件ID值全部失效，无法再索引到资源，所以运行时崩溃。AAR中默认没有R文件，因为带上也完全不能用。同样因为重排列，AAR无法预知自身资源接入到App后的ID值，所以Library工程生成的R.java中的域都不能用final修饰。<br><code>*：这里的逻辑很刁钻，但却很重要，是理解后续操作的前提，务必要反复品味...</code></p>
+<p>那要怎么办呢？其实关键在主模块身上：合并子模块后，主模块成了所有子模块的代言人，App只需接入主模块就等于接入了所有模块。能力越大责任越大，我们赋予了主模块如此特殊的地位，那么它也应该起到足够特殊的作用，比如桥接子模块到宿主的资源索引：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//com.sub.library</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">R</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">string</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> some_string = com.main.library.R.string.some_string;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如代码所示，我们在把子模块R文件放入classes.jar之前，手动将其中的域指向主模块R文件相同的域（<code>正是因为这里没有final修饰符，才能保留对主模块域的符号引用，编译后才不会变成数值而无法被更改</code>），因为主模块R文件会跟随每一次App构建而重新生成，所以它的ID值总是新鲜可靠的，这样子模块就可以通过这个桥接拿到正确的资源索引了。这时你可能会拍案而起，不对啊，主模块没有子模块里的资源文件，为什么R文件中会有跟子模块相同的域呢？！这其实就是上面提到的第三个问题：生成R文件流程的输出无疑是R.java，那么输入是什么？这个问题也牵扯到本文刚开始卖的关子：那个默认包含子模块内容的文件是谁？没错，就是<code>R.txt</code>（这个看似老实的东西其实坏的很 XD）。<br>我们知道，APK或AAR构建时会用Aapt编译资源文件，这个R.txt正是Aapt的产物，通过在<code>aapt package</code>命令后面跟上<code>--output-text-symbols</code>参数得到。R.txt中会记录下<code>-S</code>参数传入的资源目录下所有的资源文件信息，一个资源占一行，格式为<code>int type name id</code>，比如: int string some_string 0x7f050000（和R文件格式一致，所以猜到了吧，R.txt就是R.java的种子）。在AAR的构建中，R.txt自然记录了Library库内的资源文件信息，不过一个很不自然的事情是，构建时<code>aapt package</code>命令的<code>-S</code>参数传入的不是本工程/src/res目录，而是build/intermediates/res/<code>merged</code>/release目录，也就是合并子模块资源后的/res目录！所以，默认生成的R.txt中就已经包含了所有子模块的资源文件，而这个R.txt恰恰就是构建生成R.java的种子文件，脚本会根据R.txt中每一行的内容生成R.java中对应的域。这也就解释了为什么主模块的R.java会包含所有子模块的资源索引。终于，我们知道了如何处理R文件：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">task</span> redirectRJava &lt;&lt; &#123;</span><br><span class="line">  ...</span><br><span class="line">  embeddedAarDirs.<span class="keyword">each</span> &#123; aarPath -&gt;</span><br><span class="line">      ...</span><br><span class="line">      <span class="keyword">def</span> sb = <span class="string">"package $subPackageName;"</span> &lt;&lt; <span class="string">'\n'</span> &lt;&lt; <span class="string">'\n'</span></span><br><span class="line">       <span class="comment">//将ID赋值为主模块包名下对应的值</span></span><br><span class="line">      sb &lt;&lt; <span class="string">"    public static $type $name = $&#123;mainPackageName&#125;.R.$&#123;subclass&#125;.$&#123;name&#125;;"</span> &lt;&lt; <span class="string">'\n'</span></span><br><span class="line">      ...</span><br><span class="line">      <span class="comment">//generated_rsrc_dir = "build/generated/source/r/release"</span></span><br><span class="line">      mkdir(<span class="string">"$generated_rsrc_dir/$packagePath"</span>)</span><br><span class="line">      <span class="keyword">file</span>(<span class="string">"$generated_rsrc_dir/$packagePath/R.java"</span>).<span class="keyword">write</span>(sb.toString())</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//将R文件打成Jar包放入libs目录</span></span><br><span class="line"><span class="keyword">task</span> embedRClass(type: org.gradle.jvm.tasks.Jar, dependsOn: collectRClass) &#123;</span><br><span class="line">    ...</span><br><span class="line">    baseName <span class="string">"EmbedR"</span></span><br><span class="line">    <span class="keyword">destinationDir</span> <span class="keyword">file</span>(<span class="string">"$bundle_release_dir/libs"</span>)</span><br><span class="line">    <span class="keyword">from</span> base_r2x_dir</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>解决完R文件的难题后，我们就基本完成了AAR的合并工作，但是在实际业务中，会遇到另一个棘手的问题：Support库兼容问题。上面已经分析过，一个库的R文件中会包含它依赖的所有子模块的资源文件（还记得原因么），假如我们的模块依赖了Support库（实际业务中很常见，比如用到了v4的Fragment或者RecyclerView），那么R文件或R.txt中就会包含Support库内所有资源文件的信息，而当模块被接入后，在App的构建流程中，会根据最终的Support库版本（App依赖的Support库版本不可知）对各个R.txt里的内容做过滤，只保留App工程中确实存在的资源文件，生成最终的R文件（源代码见<code>com.android.builder.symbols.RGeneration</code>）。举个例子，假如模块使用的A版本的Support库中有资源文件res1，而接入方App使用了更高版本的Support库中没有res1这个资源，那么App构建生成的R文件中将没有res1这个资源索引，可是我们打入AAR中的R文件还保留着对res1的符号引用，结果就是在运行时类初始化失败（R.class的<cinit>错误）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">R</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">string</span> </span>&#123;</span><br><span class="line">    <span class="comment">//这里的com.main.library.R.string.res1被过滤掉不再存在，符号引用失效</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> res1 = com.main.library.R.string.res1;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>怎么办呢？第一反应是保证support库版本一致（必须精确到小版本号），即针对每个接入方构建出跟其Support库一致的产物，这就带来了很多隐藏成本（还需要手动做R.txt的过滤），更何况假如接入方某天更新了Support库版本，直接就Runtime Crash了，这属于对接事故，显然不能接受。那么，应该怎么做呢？其实很简单：禁止Support库资源写入R.txt即可（其实官方也明确提示过不要自己使用Support库里的资源），还记得R.txt是根据什么生成的么？没错，是build/intermediates/res/merged/release目录下的资源合集，而这些文件又是根据遍历依赖合并进来的，假如我们能在合并时过滤掉Support库的依赖项，就在源头上过滤掉了Support库资源。所以我们只需要对合并Resources的Task稍做手脚：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">task</span> filterMergeResource &lt;&lt; &#123;</span><br><span class="line">    <span class="keyword">def</span> oldInputResourceSet = task_mergeResources.inputResourceSets</span><br><span class="line">    List&lt;ResourceSet&gt; newInputResourceSet = <span class="keyword">new</span> ArrayList(oldInputResourceSet)</span><br><span class="line">    newInputResourceSet.removeAll &#123;</span><br><span class="line">        <span class="comment">//过滤com.android.support包名下的依赖，避免support库资源打入R.txt</span></span><br><span class="line">        (<span class="keyword">null</span> != it.libraryName) &amp;&amp; (it.libraryName.contains(<span class="string">"com.android.support"</span>))</span><br><span class="line">    &#125;</span><br><span class="line">    task_mergeResources.conventionMapping.map(<span class="string">"inputResourceSets"</span>) &#123;</span><br><span class="line">        newInputResourceSet</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="https://i.loli.net/2019/11/13/l5iHQ3CTKvNg94n.png" alt="总结"><br>最终我们插入了以上几个自定义任务到不同的构建节点中，完成了合并AAR的构建改造，但仍然有拓展空间，比如支持buildType和productFlavor，有兴趣的同学可以自己尝试下（其实就是找到对应的build目录）。</p>
+<blockquote>
+<p>参考：<a href="https://github.com/adwiv/android-fat-aar" target="_blank" rel="noopener">https://github.com/adwiv/android-fat-aar</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Android/" rel="tag"># Android</a>
+              <a href="/tags/Gradle/" rel="tag"># Gradle</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/2019/04/05/Appium/" rel="prev" title="Appium&Cucumber搭建UI自动化测试框架">
+                  Appium&Cucumber搭建UI自动化测试框架 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#背景"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#认识AAR"><span class="nav-number">2.</span> <span class="nav-text">认识AAR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#assets目录"><span class="nav-number">3.</span> <span class="nav-text">/assets目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#res目录"><span class="nav-number">4.</span> <span class="nav-text">/res目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jni目录"><span class="nav-number">5.</span> <span class="nav-text">/jni目录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#proguard-txt"><span class="nav-number">6.</span> <span class="nav-text">proguard.txt</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AndroidManifest-xml"><span class="nav-number">7.</span> <span class="nav-text">AndroidManifest.xml</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#classes-jar"><span class="nav-number">8.</span> <span class="nav-text">classes.jar</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R文件"><span class="nav-number">9.</span> <span class="nav-text">R文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">10.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="leeon"
+      src="https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png">
+  <p class="site-author-name" itemprop="name">leeon</p>
+  <div class="site-description" itemprop="description">you rest, you rust</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span>
+      </div>
+  </nav>
+</div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title">
+      <i class="fa fa-fw fa-link"></i>
+      Links
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://www.jianshu.com/u/bfd0aa0af4f3" title="https:&#x2F;&#x2F;www.jianshu.com&#x2F;u&#x2F;bfd0aa0af4f3" rel="noopener" target="_blank">简书</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">leeon</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> v4.0.0
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">Theme – <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.5.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/pisces.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
