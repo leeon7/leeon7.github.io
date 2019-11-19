@@ -40,10 +40,10 @@ custom_file_path:
 # ---------------------------------------------------------------
 
 favicon:
-  small: /images/avatar.png
-  medium: /images/avatar.png
-  apple_touch_icon: /images/avatar.png
-  safari_pinned_tab: /images/avatar.png
+  small: https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png
+  medium: https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png
+  apple_touch_icon: https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png
+  safari_pinned_tab: https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png
   #android_manifest: /images/manifest.json
   #ms_browserconfig: /images/browserconfig.xml
 
@@ -169,7 +169,7 @@ sidebar:
 # Sidebar Avatar
 avatar:
   # Replace the default image and set the url here.
-  url: /images/avatar.png
+  url: https://i.loli.net/2019/11/14/EI8WSmcsVHu34gv.png
   # If true, the avatar would be dispalyed in circle.
   rounded: false
   # If true, the avatar would be rotated with the cursor.
